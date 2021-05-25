@@ -1,0 +1,24 @@
+:local Token ************
+# get token: https://pddimp.yandex.ru/api2/admin/get_token
+
+:local  domenID 319***60
+# record_id domen's from: 
+# curl -H 'PddToken: 123456789ABCDEF0000000000000000000000000000000000000' 'https://pddimp.yandex.ru/api2/admin/dns/list?domain=domain.com'
+
+:local interf pppoe-out1
+# the name of the interface to determine the ip address
+
+:global currentIP;
+
+:local newIP  [/ip address get [find interface=$interf] address]
+:set newIP [ [:pick $newIP 0 [:find $newIP "/"]]]
+
+:if ($newIP != $currentIP) do={
+    :put "ip address $currentIP changed to $newIP";
+    :set currentIP $newIP;
+/tool fetch \
+http-method=post \
+http-header-field="PddToken: $Token " \
+http-data="domain=ekbgo.ru&record_id=$domenID&ttl=3600&content=$currentIP" \
+url="https://pddimp.yandex.ru/api2/admin/dns/edit"
+}
